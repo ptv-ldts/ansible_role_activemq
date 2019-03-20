@@ -1,0 +1,39 @@
+- name: stop old activemqs
+  service:
+    name: activemq
+    state: stopped
+  ignore_errors: true
+
+- name: Unpack activemq
+  unarchive:
+    src: "apache-activemq-{{activemq.version}}-bin.tar.gz"
+    dest: "/opt"
+  notify: restart activemq
+
+- name: Get Activemq Directory
+  local_action: shell tar tf /ansible/roles/activemq/files/apache-activemq-{{activemq.version}}-bin.tar.gz | head -1 | sed -e 's/\/.*//'
+  register: amqDirectory
+
+- name: symlink Activemq directory
+  file:
+    src: "/opt/{{amqDirectory.stdout}}"
+    dest: "/opt/activemq"
+    state: link
+  when: "not amqDirectory.stdout ==  'activemq'"
+  notify: restart activemq
+
+- name: symlink Activemq Init Script
+  file:
+    src: "/opt/activemq/bin/activemq"
+    dest: "/etc/init.d/activemq"
+    state: link
+    mode: 0755
+  notify: restart activemq
+
+- name: Enable service
+  service:
+    name: activemq
+    state: started
+    enabled: yes
+  ignore_errors: true
+    

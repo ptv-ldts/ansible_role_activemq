@@ -1,0 +1,3 @@
+activemq:
+  version: 5.14.5
+  properties_dir: /opt/activemq/conf
